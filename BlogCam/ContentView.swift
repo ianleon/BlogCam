@@ -30,9 +30,31 @@ struct Viewfinder:UIViewRepresentable {
     typealias UIViewType = UIView
 }
 
+class FramesDelegate:NSObject,AVCaptureVideoDataOutputSampleBufferDelegate {
+    func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        
+        print(#function)
+    }
+    func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        print(#function)
+    }
+}
+
 struct ContentView: View {
     var session = AVCaptureSession()
     
+    var framesOut = AVCaptureVideoDataOutput()
+    let framesQueue = DispatchQueue(
+        label: "com.ianleon.blogcam",
+        qos: .userInitiated,
+        attributes: [],
+        autoreleaseFrequency: .workItem
+    )
+    let framesDelegate = FramesDelegate()
     var body: some View {
         
         // START Setting configuration properties
@@ -51,6 +73,12 @@ struct ContentView: View {
                 try! session.addInput(AVCaptureDeviceInput(device: frontCameraDevice))
             }
         }
+        
+        session.addOutput(framesOut)
+        framesOut.setSampleBufferDelegate(
+            framesDelegate,
+            queue: framesQueue
+        )
 
         // END Setting configuration properties
         session.commitConfiguration()
