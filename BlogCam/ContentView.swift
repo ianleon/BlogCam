@@ -4,35 +4,6 @@ import MetalKit
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
-class LegacyViewfinder: UIView
-{
-
-    // We need to set a type for our layer
-    override class var layerClass: AnyClass {
-        AVCaptureVideoPreviewLayer.self
-    }
-}
-
-struct Viewfinder:UIViewRepresentable {
-    
-    var session: AVCaptureSession
-    
-    func makeUIView(context: Context) -> UIView {
-        let legacyView = LegacyViewfinder()
-        PREVIEW : if let previewLayer = legacyView.layer as? AVCaptureVideoPreviewLayer {
-            previewLayer.session = session
-        }
-        return legacyView
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {
-        
-        // TODO: Handle orientation updates
-    }
-    
-    typealias UIViewType = UIView
-}
-
 class LegacyMetalViewfinder: MTKView {
 
     // https://developer.apple.com/wwdc20/10008
