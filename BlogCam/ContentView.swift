@@ -64,20 +64,15 @@ struct MetalViewfinder: UIViewRepresentable {
     }
 }
 
-class FramesDelegate:NSObject,AVCaptureVideoDataOutputSampleBufferDelegate {
-    let metalViewfinder: LegacyMetalViewfinder
+extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    init(viewfinder: LegacyMetalViewfinder) {
-        metalViewfinder = viewfinder
-        metalViewfinder.framebufferOnly = false
-        
-        super.init()
-    }
     func captureOutput(
         _ output: AVCaptureOutput,
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
+        
+        self.framebufferOnly = false
         
         guard let imageBuffer = sampleBuffer.imageBuffer
         else {
@@ -87,17 +82,17 @@ class FramesDelegate:NSObject,AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         
         // Get a CI Image
-        let image = CIImage(cvImageBuffer: imageBuffer)
+        let sampleImage = CIImage(cvImageBuffer: imageBuffer)
 
         // Get the original size of the image
-        let originalSize = image.extent.size
+        let originalSize = sampleImage.extent.size
         
         // A rect with our frame's aspect ratio that fits in the viewfinder
         let targetRect = AVMakeRect(
             aspectRatio: originalSize,
             insideRect: CGRect(
                 origin: .zero,
-                size: metalViewfinder.drawableSize
+                size: drawableSize
             )
         )
         
@@ -119,15 +114,15 @@ class FramesDelegate:NSObject,AVCaptureVideoDataOutputSampleBufferDelegate {
         // We use clamping to resolve some issues with the pixellate filter
         // TODO: Try removing the call to clamped and change the scale.
         // What happens? Do you see what this does for us?
-        filter.inputImage = image.clampedToExtent()
+        filter.inputImage = sampleImage.clampedToExtent()
         
         // Apply the transforms to the image
-        let scaledImage = (filter.outputImage ?? image)
-            .cropped(to: image.extent)
+        let scaledImage = (filter.outputImage ?? sampleImage)
+            .cropped(to: sampleImage.extent)
             .transformed(by: scale.concatenating(translate))
 
         // Set the image on the viewfinder
-        metalViewfinder.image = scaledImage
+        image = scaledImage
     }
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         print(#function)
@@ -144,11 +139,9 @@ struct ContentView: View {
         attributes: [],
         autoreleaseFrequency: .workItem
     )
-    let framesDelegate = FramesDelegate(
-        viewfinder: LegacyMetalViewfinder(
-            frame: .zero,
-            device: MTLCreateSystemDefaultDevice()!
-        )
+    let metalViewfinder = LegacyMetalViewfinder(
+        frame: .zero,
+        device: MTLCreateSystemDefaultDevice()!
     )
     var body: some View {
         
@@ -171,7 +164,7 @@ struct ContentView: View {
         
         session.addOutput(framesOut)
         framesOut.setSampleBufferDelegate(
-            framesDelegate,
+            metalViewfinder,
             queue: framesQueue
         )
         
@@ -194,6 +187,6 @@ struct ContentView: View {
         // Start the AVCapture session
         session.startRunning()
         
-        return MetalViewfinder(legacyViewfinder: framesDelegate.metalViewfinder)
+        return MetalViewfinder(legacyViewfinder: metalViewfinder)
     }
 }
