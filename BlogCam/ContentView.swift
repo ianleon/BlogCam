@@ -58,20 +58,6 @@ extension LegacyMetalViewfinder: MTKViewDelegate {
     }
 }
 
-struct MetalViewfinder: UIViewRepresentable {
-    
-    typealias UIViewType = UIView
-    
-    var legacyViewfinder: LegacyMetalViewfinder
-    
-    func makeUIView(context: Context) -> UIView {
-        return legacyViewfinder
-    }
-    func updateUIView(_ uiView: UIView, context: Context) {
-        // TODO
-    }
-}
-
 extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(
@@ -132,6 +118,20 @@ extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         print(#function)
+    }
+}
+
+struct MetalViewfinder: UIViewRepresentable {
+    
+    typealias UIViewType = UIView
+    
+    var legacyViewfinder: LegacyMetalViewfinder
+    
+    func makeUIView(context: Context) -> UIView {
+        return legacyViewfinder
+    }
+    func updateUIView(_ uiView: UIView, context: Context) {
+        // TODO
     }
 }
 
