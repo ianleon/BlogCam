@@ -121,18 +121,13 @@ extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     }
 }
 
-struct MetalViewfinder: UIViewRepresentable {
+/// Simple, generic UIView representable
+struct Rep<T: UIView>: UIViewRepresentable {
     
     typealias UIViewType = UIView
-    
-    var legacyViewfinder: LegacyMetalViewfinder
-    
-    func makeUIView(context: Context) -> UIView {
-        return legacyViewfinder
-    }
-    func updateUIView(_ uiView: UIView, context: Context) {
-        // TODO
-    }
+    var view: T
+    func makeUIView(context: Context) -> UIView { view }
+    func updateUIView(_ uiView: UIView, context: Context) { }
 }
 
 struct ContentView: View {
@@ -193,6 +188,6 @@ struct ContentView: View {
         // Start the AVCapture session
         session.startRunning()
         
-        return MetalViewfinder(legacyViewfinder: metalViewfinder)
+        return Rep(view: metalViewfinder)
     }
 }
