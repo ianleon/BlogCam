@@ -79,7 +79,6 @@ class FramesDelegate:NSObject,AVCaptureVideoDataOutputSampleBufferDelegate {
         from connection: AVCaptureConnection
     ) {
         
-        print(#function)
         guard let imageBuffer = sampleBuffer.imageBuffer
         else {
             
