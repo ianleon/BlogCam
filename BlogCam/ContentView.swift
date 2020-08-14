@@ -198,9 +198,3 @@ struct ContentView: View {
         return MetalViewfinder(legacyViewfinder: framesDelegate.metalViewfinder)
     }
 }
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
