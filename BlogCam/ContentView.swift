@@ -27,6 +27,8 @@ class LegacyMetalViewfinder: MTKView {
     override init(frame frameRect: CGRect, device: MTLDevice?) {
         super.init(frame: frameRect, device: device)
         framebufferOnly = false
+        backgroundColor = .clear
+        self.delegate = self
     }
     
     required init(coder: NSCoder) {
@@ -34,7 +36,7 @@ class LegacyMetalViewfinder: MTKView {
     }
 }
 
-class LegacyMetalViewFinderDelegate: NSObject, MTKViewDelegate {
+extension LegacyMetalViewfinder: MTKViewDelegate {
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         // TODO
@@ -61,11 +63,8 @@ struct MetalViewfinder: UIViewRepresentable {
     typealias UIViewType = UIView
     
     var legacyViewfinder: LegacyMetalViewfinder
-    var metalDelegate = LegacyMetalViewFinderDelegate()
     
     func makeUIView(context: Context) -> UIView {
-        legacyViewfinder.backgroundColor = .clear
-        legacyViewfinder.delegate = metalDelegate
         return legacyViewfinder
     }
     func updateUIView(_ uiView: UIView, context: Context) {
@@ -80,9 +79,7 @@ extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        
-        
-        
+
         guard let imageBuffer = sampleBuffer.imageBuffer
         else {
             
