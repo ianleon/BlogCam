@@ -23,6 +23,15 @@ class LegacyMetalViewfinder: MTKView {
         mtlTextureProvider: { self.currentDrawable!.texture }
     )
     var image: CIImage?
+    
+    override init(frame frameRect: CGRect, device: MTLDevice?) {
+        super.init(frame: frameRect, device: device)
+        framebufferOnly = false
+    }
+    
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 class LegacyMetalViewFinderDelegate: NSObject, MTKViewDelegate {
@@ -72,7 +81,7 @@ extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
         from connection: AVCaptureConnection
     ) {
         
-        self.framebufferOnly = false
+        
         
         guard let imageBuffer = sampleBuffer.imageBuffer
         else {
