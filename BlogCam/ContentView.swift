@@ -4,7 +4,7 @@ import MetalKit
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
-class LegacyMetalViewfinder: MTKView {
+class Viewfinder: MTKView {
 
     // https://developer.apple.com/wwdc20/10008
     lazy var commandQueue = device!.makeCommandQueue()!
@@ -36,7 +36,7 @@ class LegacyMetalViewfinder: MTKView {
     }
 }
 
-extension LegacyMetalViewfinder: MTKViewDelegate {
+extension Viewfinder: MTKViewDelegate {
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         // TODO
@@ -44,7 +44,7 @@ extension LegacyMetalViewfinder: MTKViewDelegate {
         
     func draw(in view: MTKView) {
         guard
-            let view = view as? LegacyMetalViewfinder,
+            let view = view as? Viewfinder,
             let image = view.image,
             let drawable = view.currentDrawable,
             let buffer = view.commandQueue.makeCommandBuffer()
@@ -58,7 +58,7 @@ extension LegacyMetalViewfinder: MTKViewDelegate {
     }
 }
 
-extension LegacyMetalViewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
+extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(
         _ output: AVCaptureOutput,
@@ -140,7 +140,7 @@ struct ContentView: View {
         attributes: [],
         autoreleaseFrequency: .workItem
     )
-    let metalViewfinder = LegacyMetalViewfinder(
+    let viewfinder = Viewfinder(
         frame: .zero,
         device: MTLCreateSystemDefaultDevice()!
     )
@@ -148,7 +148,6 @@ struct ContentView: View {
         
         // START Setting configuration properties
         session.beginConfiguration()
-
         
         // Get the capture device
         DEVICE : if let frontCameraDevice = AVCaptureDevice.default(
@@ -165,7 +164,7 @@ struct ContentView: View {
         
         session.addOutput(framesOut)
         framesOut.setSampleBufferDelegate(
-            metalViewfinder,
+            viewfinder,
             queue: framesQueue
         )
         
@@ -188,6 +187,6 @@ struct ContentView: View {
         // Start the AVCapture session
         session.startRunning()
         
-        return Rep(view: metalViewfinder)
+        return Rep(view: viewfinder)
     }
 }
