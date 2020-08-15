@@ -28,7 +28,12 @@ class Viewfinder: MTKView {
         commandBuffer: nil,
         mtlTextureProvider: { self.currentDrawable!.texture }
     )
+    
+    /// Current image to show as preview
     var image: CIImage?
+    
+    /// Filter applied to `image`
+    var filter: CIFilter?
     
     override init(frame frameRect: CGRect, device: MTLDevice?) {
         super.init(frame: frameRect, device: device)
@@ -107,15 +112,11 @@ extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
         )
         
         // Apply a filter
-        let filter = CIFilter.pixellate()
-        filter.scale = 12
-        // We use clamping to resolve some issues with the pixellate filter
-        // TODO: Try removing the call to clamped and change the scale.
-        // What happens? Do you see what this does for us?
-        filter.inputImage = sampleImage.clampedToExtent()
+        filter?.setValue(sampleImage.clampedToExtent(),
+                         forKey: kCIInputImageKey)
         
         // Apply the transforms to the image
-        let scaledImage = (filter.outputImage ?? sampleImage)
+        let scaledImage = (filter?.outputImage ?? sampleImage)
             .cropped(to: sampleImage.extent)
             .transformed(by: scale.concatenating(translate))
 
