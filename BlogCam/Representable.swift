@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Simple, generic UIView representable
+/// Simply shows a UIView
 struct Rep<T: UIView>: UIViewRepresentable {
     
     typealias UIViewType = UIView

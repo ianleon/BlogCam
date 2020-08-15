@@ -34,7 +34,7 @@ class Viewfinder: MTKView {
         super.init(frame: frameRect, device: device)
         framebufferOnly = false
         backgroundColor = .clear
-        self.delegate = self
+        delegate = self
     }
     
     required init(coder: NSCoder) {
