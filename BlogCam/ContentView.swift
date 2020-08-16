@@ -91,7 +91,7 @@ struct ContentView: View {
         zoom.amount = 20
         zoom.center = .init(x: 500, y: 500)
         
-        viewfinder.filter = .pipeline([pixellate, zoom])
+        viewfinder.filter = .pipeline([pixellate, .pipeline([zoom,hue])])
         
         return Rep(view: viewfinder)
     }
