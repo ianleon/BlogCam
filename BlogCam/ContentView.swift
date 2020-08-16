@@ -60,7 +60,7 @@ struct ContentView: View {
         session.startRunning()
         
         let pixellate = CIFilter.pixellate()
-        pixellate.scale = 12
+        pixellate.scale = 40
         
         let invert = CIFilter.colorInvert()
         
@@ -91,7 +91,7 @@ struct ContentView: View {
         zoom.amount = 20
         zoom.center = .init(x: 500, y: 500)
         
-        viewfinder.filter = zoom
+        viewfinder.filter = .pipeline([pixellate, zoom])
         
         return Rep(view: viewfinder)
     }
