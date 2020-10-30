@@ -2,9 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSCameraUsageDescription</key>
-    <string>$(EXECUTABLE_NAME) uses the camera to take pictures</string>
-
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Use your voice to take a picture</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Saving to your photo library</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Use your microphone to do speech recognition</string>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>$(EXECUTABLE_NAME) uses the camera to take pictures</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
