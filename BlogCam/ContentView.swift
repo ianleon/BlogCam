@@ -1,10 +1,81 @@
 import SwiftUI
 import AVKit
+import Speech
 
-struct ContentView: View {
+class SpeechRecognizer {
+
+    var audioEngine = AVAudioEngine()
+    var speechRecognizer = SFSpeechRecognizer()!
+    var request = SFSpeechAudioBufferRecognitionRequest()
+    var callback: (() -> ())?
+    
+    func makeRecognitionTask() -> SFSpeechRecognitionTask {
+        
+        
+        // Setup audio session
+        let node = self.audioEngine.inputNode
+        let recordingFormat = node.outputFormat(forBus: 0)
+        
+        node.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {
+            (buffer, _) in
+            self.request.append(buffer)
+        }
+        self.audioEngine.prepare()
+        try! self.audioEngine.start()
+        
+        
+        let task = speechRecognizer.recognitionTask(with: request) {
+            [weak self]
+            (res, err) in
+            
+            guard let self = self else { return }
+                
+            print("TASK")
+            
+
+            DispatchQueue.main.async {
+                guard
+                    let result = res,
+                    !result.isFinal && err == nil else {
+                    // Handle finalizing the recognition task
+                    print("ENDING")
+                    print(err.debugDescription)
+                    print("---")
+                    self.audioEngine.inputNode.removeTap(onBus: 0)
+                    self.request = .init()
+                    self.recognitionTask = nil
+                    self.recognitionTask = self.makeRecognitionTask()
+                    return
+                }
+                if result.bestTranscription.formattedString.lowercased().contains("Take a picture".lowercased())  {
+
+                    
+                    
+                    self.audioEngine.stop()
+                    self.recognitionTask?.cancel()
+                    self.request.endAudio()
+                    self.callback?()
+                
+                    return
+                }
+            }
+        }
+        
+        return task
+    }
+    
+    var recognitionTask: SFSpeechRecognitionTask?
+    
+    init() {
+        recognitionTask = makeRecognitionTask()
+    }
+}
+
+struct ContentView: View  {
     var session = AVCaptureSession()
     
     var framesOut = AVCaptureVideoDataOutput()
+    var photoOut = AVCapturePhotoOutput()
     let framesQueue = DispatchQueue(
         label: "com.ianleon.blogcam",
         qos: .userInitiated,
@@ -15,6 +86,16 @@ struct ContentView: View {
         frame: .zero,
         device: MTLCreateSystemDefaultDevice()!
     )
+    
+    var speechRec = SpeechRecognizer()
+    
+    func takePicture() {
+        photoOut.capturePhoto(
+            with: AVCapturePhotoSettings(),
+            delegate: viewfinder
+        )
+    }
+    
     var body: some View {
         
         // START Setting configuration properties
@@ -33,7 +114,13 @@ struct ContentView: View {
             }
         }
         
-        session.addOutput(framesOut)
+        if session.canAddOutput(framesOut) {
+            session.addOutput(framesOut)
+        }
+        
+        if session.canAddOutput(photoOut) {
+            session.addOutput(photoOut)
+        }
         
         framesOut.setSampleBufferDelegate(
             viewfinder,
@@ -92,6 +179,10 @@ struct ContentView: View {
         zoom.center = .init(x: 500, y: 500)
         
         viewfinder.filter = .pipeline([pixellate, .pipeline([zoom,hue])])
+        
+        speechRec.callback = {
+            self.takePicture()
+        }
         
         return Rep(view: viewfinder)
     }
