@@ -22,6 +22,12 @@ class SpeechRecognizer {
         }
         self.audioEngine.prepare()
         try! self.audioEngine.start()
+        let keyPhrase: String = "Take a picture"
+        let stopPhrase: String = "Stop Listening"
+        
+        var left:String.Index?
+
+        speechRecognizer.defaultTaskHint = .confirmation
         
         
         let task = speechRecognizer.recognitionTask(with: request) {
@@ -42,18 +48,30 @@ class SpeechRecognizer {
                     print(err.debugDescription)
                     print("---")
                     self.audioEngine.inputNode.removeTap(onBus: 0)
-                    self.request = .init()
                     self.recognitionTask = nil
-                    self.recognitionTask = self.makeRecognitionTask()
                     return
                 }
-                if result.bestTranscription.formattedString.lowercased().contains("Take a picture".lowercased())  {
-
-                    
-                    
+                
+                let transcript: String = result.bestTranscription.formattedString
+                
+                let start: (String.Index) = (left ?? transcript.startIndex)
+                
+                
+                if transcript[start...].lowercased().contains(stopPhrase.lowercased()) {
                     self.audioEngine.stop()
                     self.recognitionTask?.cancel()
                     self.request.endAudio()
+                    
+                    print(transcript)
+                }
+                if transcript[start...].lowercased().contains(keyPhrase.lowercased())  {
+
+                    defer {
+                        left = transcript.endIndex
+                    }
+                    
+                    print(start, transcript, "-", transcript[start...])
+                    
                     self.callback?()
                 
                     return
@@ -178,7 +196,7 @@ struct ContentView: View  {
         zoom.amount = 20
         zoom.center = .init(x: 500, y: 500)
         
-        viewfinder.filter = .pipeline([pixellate, .pipeline([zoom,hue])])
+        viewfinder.filter = invert
         
         speechRec.callback = {
             self.takePicture()
