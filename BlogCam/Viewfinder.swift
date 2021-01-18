@@ -131,7 +131,7 @@ extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
         image = scaledImage
     }
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        print(#function)
+        // print(#function)
     }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {

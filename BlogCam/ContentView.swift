@@ -2,90 +2,111 @@ import SwiftUI
 import AVKit
 import Speech
 
-class SpeechRecognizer {
+extension String {
+    func occurrences(_ keyPhrase:String) -> Int {
+        self.components(separatedBy: keyPhrase).count - 1
+    }
+}
 
-    var audioEngine = AVAudioEngine()
+struct Microphone {
+    static let audioEngine = AVAudioEngine()
+    static func tap(block: @escaping AVAudioNodeTapBlock) throws {
+        
+        // Configure the audio session for the app.
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        
+        let node = Microphone.audioEngine.inputNode
+        let fmt = node.outputFormat(forBus: 0)
+        node.installTap(onBus: 0, bufferSize: 1024, format: fmt, block: block)
+        try audioEngine.start()
+    }
+    
+    static func untap() {
+        Microphone.audioEngine.inputNode.removeTap(onBus: 0)
+    }
+}
+
+class VoiceTrigger {
+
     var speechRecognizer = SFSpeechRecognizer()!
     var request = SFSpeechAudioBufferRecognitionRequest()
+    var task: SFSpeechRecognitionTask!
     var callback: (() -> ())?
+    var picturesTaken = 0
     
-    func makeRecognitionTask() -> SFSpeechRecognitionTask {
+    let keyPhrase = "Take a picture"
+    let stopPhrase = "Stop Listening"
+    
+    func makeRecognitionTask() {
         
+        self.picturesTaken = 0
         
         // Setup audio session
-        let node = self.audioEngine.inputNode
-        let recordingFormat = node.outputFormat(forBus: 0)
-        
-        node.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {
-            (buffer, _) in
-            self.request.append(buffer)
-        }
-        self.audioEngine.prepare()
-        try! self.audioEngine.start()
-        let keyPhrase: String = "Take a picture"
-        let stopPhrase: String = "Stop Listening"
-        
-        var left:String.Index?
-
-        speechRecognizer.defaultTaskHint = .confirmation
-        
-        
-        let task = speechRecognizer.recognitionTask(with: request) {
+        try! Microphone.tap {
             [weak self]
+            (buffer, _) in
+            self?.request.append(buffer)
+        }
+        
+        request.contextualStrings = [keyPhrase, stopPhrase]
+                
+        self.task = speechRecognizer.recognitionTask(with: request) {
+            [weak self]
+            
             (res, err) in
             
-            guard let self = self else { return }
-                
-            print("TASK")
+            guard let self = self else {
+                print("")
+                return
+            }
             
-
             DispatchQueue.main.async {
                 guard
                     let result = res,
-                    !result.isFinal && err == nil else {
+                    err == nil,
+                    !result.isFinal
+                
+                    else {
                     // Handle finalizing the recognition task
-                    print("ENDING")
-                    print(err.debugDescription)
-                    print("---")
-                    self.audioEngine.inputNode.removeTap(onBus: 0)
-                    self.recognitionTask = nil
+                    print("ENDING ", err?.localizedDescription, " --- res ", res?.isFinal)
+                    Microphone.untap()
+                    self.request.endAudio()
+                    self.task.cancel()
+                    self.makeRecognitionTask()
                     return
                 }
                 
                 let transcript: String = result.bestTranscription.formattedString
                 
-                let start: (String.Index) = (left ?? transcript.startIndex)
+//                let start: (String.Index) = (left ?? transcript.startIndex)
+//                print("TASK", self.picturesTaken, transcript)
                 
                 
-                if transcript[start...].lowercased().contains(stopPhrase.lowercased()) {
-                    self.audioEngine.stop()
-                    self.recognitionTask?.cancel()
+                if transcript.occurrences(self.stopPhrase) > 0 {
                     self.request.endAudio()
-                    
+                    self.task.finish()
+                    Microphone.untap()
                     print(transcript)
                 }
-                if transcript[start...].lowercased().contains(keyPhrase.lowercased())  {
+                if transcript.occurrences(self.keyPhrase) > self.picturesTaken  {
 
                     defer {
-                        left = transcript.endIndex
+                        self.picturesTaken += 1
                     }
-                    
-                    print(start, transcript, "-", transcript[start...])
-                    
+                    print(self.picturesTaken, transcript)
                     self.callback?()
-                
                     return
                 }
             }
         }
-        
-        return task
     }
     
-    var recognitionTask: SFSpeechRecognitionTask?
+    
     
     init() {
-        recognitionTask = makeRecognitionTask()
+        makeRecognitionTask()
     }
 }
 
@@ -105,7 +126,7 @@ struct ContentView: View  {
         device: MTLCreateSystemDefaultDevice()!
     )
     
-    var speechRec = SpeechRecognizer()
+    var speechRec = VoiceTrigger()
     
     func takePicture() {
         photoOut.capturePhoto(
@@ -169,7 +190,7 @@ struct ContentView: View  {
         
         let invert = CIFilter.colorInvert()
         
-        let hole = CIFilter.holeDistortion()
+        _ = CIFilter.holeDistortion()
         
         let hue = CIFilter.hueAdjust()
         hue.angle = .pi
