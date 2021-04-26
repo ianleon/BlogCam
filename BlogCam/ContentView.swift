@@ -72,7 +72,8 @@ class VoiceTrigger {
                 
                     else {
                     
-                    // TOOD: Use a diffing algo to keep the session alive for longer
+                    // TODO: Use a diffing algo to keep the session alive for longer
+                    // https://blog.jcoglan.com/2017/02/12/the-myers-diff-algorithm-part-1/
                     // 1. If the diffing algo finds something different in the middle, ignore it
                     // 2. If it finds something different in the end, look for the keywords in what has been added
                     
