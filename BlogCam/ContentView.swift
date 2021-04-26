@@ -50,6 +50,8 @@ class VoiceTrigger {
             self?.request.append(buffer)
         }
         
+        request.shouldReportPartialResults = true
+        
         request.contextualStrings = [keyPhrase, stopPhrase]
                 
         self.task = speechRecognizer.recognitionTask(with: request) {
@@ -69,6 +71,12 @@ class VoiceTrigger {
                     !result.isFinal
                 
                     else {
+                    
+                    // TOOD: Use a diffing algo to keep the session alive for longer
+                    // 1. If the diffing algo finds something different in the middle, ignore it
+                    // 2. If it finds something different in the end, look for the keywords in what has been added
+                    
+                    
                     // Handle finalizing the recognition task
                     print("ENDING ", err?.localizedDescription, " --- res ", res?.isFinal)
                     Microphone.untap()
