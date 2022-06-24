@@ -137,12 +137,10 @@ extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         print(#function)
         
-        guard let unsafeCgImage = photo.cgImageRepresentation() else {
+        guard let cgImage = photo.cgImageRepresentation() else {
             print("Could not get CGImage")
             return
         }
-        
-        let cgImage = unsafeCgImage.takeUnretainedValue()
         
         let ciImage = CIImage(cgImage: cgImage)
         
