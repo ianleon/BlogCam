@@ -22,7 +22,6 @@ struct Icon: View {
         _ systemImageName: String = "a",
         _ size: Sizes = .normal,
         action: @escaping () -> Void = { }
-        
     ) {
         self.systemImageName = systemImageName
         self.accessibilityLabel = accessibilityLabel
