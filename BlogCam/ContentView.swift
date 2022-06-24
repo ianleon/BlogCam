@@ -24,6 +24,43 @@ struct ContentView: View  {
         )
     }
     
+    func makeFilter() -> CIFilter{
+        
+        let pixellate = CIFilter.pixellate()
+        pixellate.scale = 40
+        
+        let invert = CIFilter.colorInvert()
+        
+        _ = CIFilter.holeDistortion()
+        
+        let hue = CIFilter.hueAdjust()
+        hue.angle = .pi
+        
+        let sharp = CIFilter.sharpenLuminance()
+        sharp.sharpness = 40
+        
+        let unsharp = CIFilter.unsharpMask()
+        unsharp.radius = 40
+                
+        let bloom = CIFilter.bloom()
+        bloom.radius = 25
+        
+        let convolution = CIFilter.convolution3X3()
+        convolution.weights = .init(values: [  0, 1,0,
+                                              -1, 0,1,
+                                               0,-1,0], count: 9)
+        convolution.bias = 0.6
+        
+        let motionBlur = CIFilter.motionBlur()
+        motionBlur.radius = 20
+        
+        let zoom = CIFilter.zoomBlur()
+        zoom.amount = 20
+        zoom.center = .init(x: 500, y: 500)
+        
+        return invert
+    }
+    
     var body: some View {
         
         // START Setting configuration properties
@@ -74,39 +111,7 @@ struct ContentView: View  {
         // Start the AVCapture session
         session.startRunning()
         
-        let pixellate = CIFilter.pixellate()
-        pixellate.scale = 40
-        
-        let invert = CIFilter.colorInvert()
-        
-        _ = CIFilter.holeDistortion()
-        
-        let hue = CIFilter.hueAdjust()
-        hue.angle = .pi
-        
-        let sharp = CIFilter.sharpenLuminance()
-        sharp.sharpness = 40
-        
-        let unsharp = CIFilter.unsharpMask()
-        unsharp.radius = 40
-                
-        let bloom = CIFilter.bloom()
-        bloom.radius = 25
-        
-        let convolution = CIFilter.convolution3X3()
-        convolution.weights = .init(values: [  0, 1,0,
-                                              -1, 0,1,
-                                               0,-1,0], count: 9)
-        convolution.bias = 0.6
-        
-        let motionBlur = CIFilter.motionBlur()
-        motionBlur.radius = 20
-        
-        let zoom = CIFilter.zoomBlur()
-        zoom.amount = 20
-        zoom.center = .init(x: 500, y: 500)
-        
-        viewfinder.filter = invert
+        viewfinder.filter = makeFilter()
         
         return Rep(view: viewfinder)
     }
