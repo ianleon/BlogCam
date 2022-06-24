@@ -1,123 +1,5 @@
 import SwiftUI
 import AVKit
-import Speech
-
-extension String {
-    func occurrences(_ keyPhrase:String) -> Int {
-        self.components(separatedBy: keyPhrase).count - 1
-    }
-}
-
-struct Microphone {
-    static let audioEngine = AVAudioEngine()
-    static func tap(block: @escaping AVAudioNodeTapBlock) throws {
-        
-        // Configure the audio session for the app.
-        let audioSession = AVAudioSession.sharedInstance()
-        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-        
-        let node = Microphone.audioEngine.inputNode
-        let fmt = node.outputFormat(forBus: 0)
-        node.installTap(onBus: 0, bufferSize: 1024, format: fmt, block: block)
-        try audioEngine.start()
-    }
-    
-    static func untap() {
-        Microphone.audioEngine.inputNode.removeTap(onBus: 0)
-    }
-}
-
-class VoiceTrigger {
-
-    var speechRecognizer = SFSpeechRecognizer()!
-    var request = SFSpeechAudioBufferRecognitionRequest()
-    var task: SFSpeechRecognitionTask!
-    var callback: (() -> ())?
-    var picturesTaken = 0
-    
-    let keyPhrase = "Take a picture"
-    let stopPhrase = "Stop Listening"
-    
-    func makeRecognitionTask() {
-        
-        self.picturesTaken = 0
-        
-        // Setup audio session
-        try! Microphone.tap {
-            [weak self]
-            (buffer, _) in
-            self?.request.append(buffer)
-        }
-        
-        request.shouldReportPartialResults = true
-        
-        request.contextualStrings = [keyPhrase, stopPhrase]
-                
-        self.task = speechRecognizer.recognitionTask(with: request) {
-            [weak self]
-            
-            (res, err) in
-            
-            guard let self = self else {
-                print("")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                guard
-                    let result = res,
-                    err == nil,
-                    !result.isFinal
-                
-                    else {
-                    
-                    // TODO: Use a diffing algo to keep the session alive for longer
-                    // https://blog.jcoglan.com/2017/02/12/the-myers-diff-algorithm-part-1/
-                    // 1. If the diffing algo finds something different in the middle, ignore it
-                    // 2. If it finds something different in the end, look for the keywords in what has been added
-                    
-                    
-                    // Handle finalizing the recognition task
-                    print("ENDING ", err?.localizedDescription, " --- res ", res?.isFinal)
-                    Microphone.untap()
-                    self.request.endAudio()
-                    self.task.cancel()
-                    self.makeRecognitionTask()
-                    return
-                }
-                
-                let transcript: String = result.bestTranscription.formattedString
-                
-//                let start: (String.Index) = (left ?? transcript.startIndex)
-//                print("TASK", self.picturesTaken, transcript)
-                
-                
-                if transcript.occurrences(self.stopPhrase) > 0 {
-                    self.request.endAudio()
-                    self.task.finish()
-                    Microphone.untap()
-                    print(transcript)
-                }
-                if transcript.occurrences(self.keyPhrase) > self.picturesTaken  {
-
-                    defer {
-                        self.picturesTaken += 1
-                    }
-                    print(self.picturesTaken, transcript)
-                    self.callback?()
-                    return
-                }
-            }
-        }
-    }
-    
-    
-    
-    init() {
-        makeRecognitionTask()
-    }
-}
 
 struct ContentView: View  {
     var session = AVCaptureSession()
@@ -134,8 +16,6 @@ struct ContentView: View  {
         frame: .zero,
         device: MTLCreateSystemDefaultDevice()!
     )
-    
-    var speechRec = VoiceTrigger()
     
     func takePicture() {
         photoOut.capturePhoto(
@@ -227,10 +107,6 @@ struct ContentView: View  {
         zoom.center = .init(x: 500, y: 500)
         
         viewfinder.filter = invert
-        
-        speechRec.callback = {
-            self.takePicture()
-        }
         
         return Rep(view: viewfinder)
     }
