@@ -117,6 +117,11 @@ struct ContentView: View  {
         
         viewfinder.filter = makeFilter()
         
-        return Rep(view: viewfinder)
+        return VStack {
+            Rep(view: viewfinder)
+            Icon(label: "Shutter", "circle.fill") {
+                takePicture()
+            }
+        }
     }
 }
