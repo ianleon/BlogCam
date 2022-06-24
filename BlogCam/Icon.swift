@@ -29,7 +29,7 @@ struct Icon: View {
         self.size = size.rawValue
     }
     
-    func icon() -> some View {
+    fileprivate func icon() -> some View {
         Image(systemName: systemImageName)
             .font(.system(size: size))
     }
