@@ -13,17 +13,21 @@ struct Icon: View {
     let action: () -> Void
     let size: CGFloat
     
+    enum Sizes: CGFloat {
+        case normal = 36
+    }
+    
     init(
         label accessibilityLabel: String,
         _ systemImageName: String = "a",
-        _ size: CGFloat = 36,
+        _ size: Sizes = .normal,
         action: @escaping () -> Void = { }
         
     ) {
         self.systemImageName = systemImageName
         self.accessibilityLabel = accessibilityLabel
         self.action = action
-        self.size = size
+        self.size = size.rawValue
     }
     
     func icon() -> some View {
