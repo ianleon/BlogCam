@@ -61,8 +61,7 @@ struct ContentView: View  {
         return invert
     }
     
-    var body: some View {
-        
+    fileprivate func configureSession() {
         // START Setting configuration properties
         session.beginConfiguration()
         
@@ -72,7 +71,7 @@ struct ContentView: View  {
             for: .video,
             position: .front
         ) {
-
+            
             // Set the capture device
             do {
                 try! session.addInput(AVCaptureDeviceInput(device: frontCameraDevice))
@@ -104,12 +103,17 @@ struct ContentView: View  {
                 connection.isVideoMirrored = true
             }
         }
-
+        
         // END Setting configuration properties
         session.commitConfiguration()
-
+        
         // Start the AVCapture session
         session.startRunning()
+    }
+    
+    var body: some View {
+        
+        configureSession()
         
         viewfinder.filter = makeFilter()
         
