@@ -76,7 +76,7 @@ extension Viewfinder: MTKViewDelegate {
     }
 }
 
-extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate {
+extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(
         _ output: AVCaptureOutput,
@@ -133,7 +133,9 @@ extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePho
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // print(#function)
     }
-    
+}
+
+extension Viewfinder: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         print(#function)
         
