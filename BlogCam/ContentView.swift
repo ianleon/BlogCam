@@ -16,10 +16,6 @@ struct ContentView: View  {
         device: MTLCreateSystemDefaultDevice()!
     )
     
-    func takePicture() {
-        print("Click!")
-    }
-    
     func makeFilter() -> CIFilter{
         
         let pixellate = CIFilter.pixellate()
@@ -101,6 +97,10 @@ struct ContentView: View  {
         
         // Start the AVCapture session
         session.startRunning()
+    }
+    
+    func takePicture() {
+        print("Click!")
     }
     
     var body: some View {
