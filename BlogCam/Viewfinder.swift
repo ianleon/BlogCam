@@ -12,8 +12,6 @@ import CoreImage.CIFilterBuiltins
 import Photos
 
 class Viewfinder: MTKView {
-
-
     // https://developer.apple.com/wwdc20/10008
     lazy var commandQueue = device!.makeCommandQueue()!
     lazy var context = CIContext(
@@ -77,7 +75,6 @@ extension Viewfinder: MTKViewDelegate {
 }
 
 extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
     func captureOutput(
         _ output: AVCaptureOutput,
         didOutput sampleBuffer: CMSampleBuffer,
@@ -132,47 +129,5 @@ extension Viewfinder: AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // print(#function)
-    }
-}
-
-extension Viewfinder: AVCapturePhotoCaptureDelegate {
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        print(#function)
-        
-        guard let cgImage = photo.cgImageRepresentation() else {
-            print("Could not get CGImage")
-            return
-        }
-        
-        let ciImage = CIImage(cgImage: cgImage)
-        
-        filter?.setValue(ciImage, forKey: kCIInputImageKey)
-        
-        let out = filter?.outputImage
-        
-        print("Got output image")
-        
-
-        PHPhotoLibrary.requestAuthorization { status in
-
-            guard
-                status == .authorized
-                else {
-                    fatalError("NO ACCESS")
-            }
-            
-            guard
-                let data = self.context.jpegRepresentation(of: out!, colorSpace: cgImage.colorSpace!, options: [:])
-                
-                else {
-                    fatalError("Could not get photo data")
-            }
-
-            PHPhotoLibrary.shared().performChanges({
-                let options = PHAssetResourceCreationOptions()
-                let creationRequest = PHAssetCreationRequest.forAsset()
-                creationRequest.addResource(with: .photo, data: data, options: options)
-            })
-        }
     }
 }

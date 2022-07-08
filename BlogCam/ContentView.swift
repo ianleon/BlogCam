@@ -5,7 +5,6 @@ struct ContentView: View  {
     var session = AVCaptureSession()
     
     var framesOut = AVCaptureVideoDataOutput()
-    var photoOut = AVCapturePhotoOutput()
     let framesQueue = DispatchQueue(
         label: "com.ianleon.blogcam",
         qos: .userInitiated,
@@ -18,10 +17,7 @@ struct ContentView: View  {
     )
     
     func takePicture() {
-        photoOut.capturePhoto(
-            with: AVCapturePhotoSettings(),
-            delegate: viewfinder
-        )
+        print("Click!")
     }
     
     func makeFilter() -> CIFilter{
@@ -80,10 +76,6 @@ struct ContentView: View  {
         
         if session.canAddOutput(framesOut) {
             session.addOutput(framesOut)
-        }
-        
-        if session.canAddOutput(photoOut) {
-            session.addOutput(photoOut)
         }
         
         framesOut.setSampleBufferDelegate(
